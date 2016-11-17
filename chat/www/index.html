@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<script src="/socket.io/socket.io.js"></script>
+	<style type="text/css">
+		.oprea{
+			width: 300px;
+			height: 200px;
+			border: 1px solid red;
+		}
+		.write{
+			width: 300px;
+			height: 100px;
+			border: 1px solid blue;
+			margin-top: 20px;
+		}
+		button{
+			width: 50px;
+			background: red;
+			height: 20px;
+			outline: none;
+		}
+		#main{width: 310px;height: 450px;}
+		#ohide{width: 310px;height: 450px;position: absolute;top: 0;left: 5px;background: rgba(80,80,80,0.6);text-align: center;}
+		#ohide p{margin-top: 200px;}
+		#ohide  input{display: none;}
+		.success,.fail,.lauch{display: none;}
+		ul{width: 100%;list-style: none; margin-top: 10px;padding:0;color: #fff;}
+		ul li{display: inline-block;width: 30px;height: 15px;background:#D8D3D3;text-align: center;font-style: 12px;}
+		ul .active{background: red}
+	</style>
+</head>
+<body>
+	  <div id="main">
+			<div class="oprea"></div>
+			<textarea class="write" placeHolder="enter to send"></textarea>
+			<ul>
+			<!-- <li class="active">1</li>
+			<li>1</li>
+			<li>1</li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li>
+			<li></li> -->
+			
+			</ul>
+			<button id="sbn">发送</button>
+	  </div>
+	  <div id="ohide">
+	  	<p>正在连接...</p>
+	  	<input type="" name="" placeholder="输入昵称">
+	    <button class="lauch">send</button>
+	  	<div class="success">登录成功</div>
+	  	<div class="fail">重名请重新输入</div>
+	  </div>
+</body>
+<script type="text/javascript">
+	var odiv=document.getElementsByTagName('div'),
+	    oul=document.getElementsByTagName('ul')[0],
+	    oname='',
+	    opnum=0,
+	    btn=document.getElementsByTagName('button');
+	var Hchat=function(){
+		this.socket=null;
+	};
+	Hchat.prototype={
+		init:function(){
+			var that=this;
+			this.socket=io.connect();
+			this.socket.on('connect',function(){
+				document.getElementsByTagName('p')[0].textContent='连接成功';
+				document.getElementsByTagName('input')[0].style.display='block';
+				document.getElementsByTagName('input')[0].focus();
+				btn[1].style.display='block';
+			});
+			this.socket.on('existed',function(){
+				odiv[4].style.display='block';
+			});
+			this.socket.on('success',function(){
+				document.title='hchat |'+document.getElementsByTagName('input')[0].value;
+				oname=document.getElementsByTagName('input')[0].value;
+				odiv[2].style.display='none';
+			})
+			this.socket.on('system',function(nickname,usercount,type){
+				var msg=nickname;
+				if(type=='login'){
+					var ali =document.createElement('li');
+					ali.onclick=function(){
+						var oli=document.getElementsByTagName('li');
+						for(var i =0;i<oli.length;i++){
+							oli[i].className='';
+						}
+						this.className='active';
+						opnum=nickname;
+						oname=nickname;
+					}
+					ali.setAttribute('id',nickname);
+				    ali.textContent=msg;
+				    oul.appendChild(ali);
+				}else{
+                   var ali=document.getElementById(nickname);
+                   if(ali){
+                   	oul.removeChild(ali);
+                   }
+				}
+				
+				
+			});
+			this.socket.on('mes',function(type,message){
+				if(type==11){
+					type='官方客服';
+				}
+                  var msg=type+':'+message;
+                  if(msg){
+                  	var op=document.createElement('p');
+                  	op.textContent=msg;
+                  	odiv[1].appendChild(op);
+                  }
+			})
+            btn[1].onclick=function(){
+            	var nickname=document.getElementsByTagName('input')[0].value;
+            	if(nickname.trim().length!=0){
+            		that.socket.emit('login',nickname);
+            		odiv[3].style.display='block';
+            	}
+            }
+            btn[0].onclick=function(){
+            	var om=document.getElementsByTagName('textarea')[0].value;
+            	var nickname=oname;
+            	if(om.trim().length!=0){
+                     that.socket.emit('send',nickname,om,opnum);
+                     document.getElementsByTagName('textarea')[0].value='';
+            	}
+            }
+
+		}
+
+
+	}
+	var hchat= new Hchat();
+	hchat.init();
+	
+</script>
+</html>
