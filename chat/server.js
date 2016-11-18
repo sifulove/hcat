@@ -5,7 +5,8 @@ var http =require('http'),
     io=require('socket.io').listen(server),
     users=new Array();
 app.use('/', express.static(__dirname + '/www')); //指定静态HTML文件的位置
-server.listen(8080);
+// server.listen(8080);
+server.listen(process.env.PORT || 3000);
 console.log('server started');
 io.on('connection',function(socket){
 	socket.on('login',function(nickname){
